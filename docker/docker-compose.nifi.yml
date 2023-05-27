@@ -29,8 +29,6 @@ services:
       - NIFI_WEB_HTTP_PORT=8080
       - NIFI_WEB_HTTPS_HOST=0.0.0.0
       - NIFI_WEB_HTTPS_PORT=8443
-      - NIFI_SECURITY_USER_USERNAME=admin
-      - NIFI_SECURITY_USER_PASSWORD=admin
       - JVM_OPTS=-Xmx512m -Xms512m -XX:MaxPermSize=1g
     volumes:
       - nifi_registry_volume:/opt/nifi-registry/nifi-registry-current
