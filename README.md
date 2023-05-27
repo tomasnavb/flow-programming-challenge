@@ -1,24 +1,32 @@
 
-# Flow Programming Challenge - Tomás Navarro
+# Flow Programming Challenge by Tomás Navarro
 
 
 
 
-## Description
+## Description 🧾
 
-This is my personal project made to participate in the "Flow Programming Challenge" from Epic IO.
+This is my personal project made to participate in the "Flow Programming Challenge" from Epic IO.\
+The challenge consists of building a system based on 4 containerized software components (Apache Kafka, Apache NiFi, Node-RED, and a producer). This system is responsible for processing vehicle-related data, transforming messages, and storing them formatted in a database. It also displays alerts on a Node-RED dashboard based on vehicles that meet certain criteria. The programs communicate with each other through a Docker network named 'epic-net'. \
 In this document I'm going to explain how to deploy the project.
 
 
-## Deployment
+## Deployment ⚙️
 
-## Infra Setup
 
-You will need [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/) installed in your computer.
+- Follow the next steps to succesfully deploy the project
 
-You simply need to create a Docker network called `epic-net` to enable communication between the services.
+## Infra Setup 💻
 
-## Producers Setup
+- You will need [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/) installed in your computer.
+
+- You simply need to create a Docker network called `epic-net` to enable communication between the services.
+
+```bash
+$ docker network create epic-net
+```
+
+## Producers Setup 🔧
 
 - Spin up the local single-node Kafka cluster (will run in the background):
 
@@ -38,7 +46,7 @@ $ docker-compose -f docker/docker-compose.kafka.yml logs -f broker | grep "start
 $ docker-compose -f docker/docker-compose.producer.yml up -d
 ```
 
-## Nifi Setup
+## Nifi Setup 🔧
 
 - Start the Nifi and Nifi-Registry services
 
@@ -62,7 +70,7 @@ $ docker-compose -f docker/docker-compose.nifi.yml up -d
 
 - After you login Apache Nifi you have to import the epic-network-template.xml that is located in the "templates" directory and place it on the workspace.
 
-![Nifi Flow](https://i.ibb.co/7jTdYVZ/workspace.png)
+![Nifi Flow](https://i.ibb.co/fnvcWyM/principal.png)
 
 - If you see EPIC-NETWORK group everything is correct.
 
@@ -70,7 +78,31 @@ $ docker-compose -f docker/docker-compose.nifi.yml up -d
 
 - All processors are located within EPIC-NETWORK
 
-## Cassandra Setup
+- Now set the database password in PUT CASSANDRA processor. This is required because Apache Nifi doesn't save passwords in templates configuration.
+
+```bash
+User: admin
+Password: admin
+```
+
+- Last step is enable CassandraSessionProvider in the EPIC-NETWORK configuration.
+
+![Nifi Flow](https://i.ibb.co/GJqgJYb/enable.jpg)
+
+![Nifi Flow](https://i.ibb.co/8dJTv8R/ok.jpg)
+
+
+## Cassandra Setup 🔧
+
+In this project I will use a Cassandra database because:
+
+- Native Integration: Apache NiFi has a specific processor called "PutCassandraRecord" that allows writing data directly into a Cassandra database. This native integration simplifies the workflow and configuration when using both systems together
+
+- Scalability and Performance: Both Apache NiFi and Cassandra are designed to be highly scalable and handle large volumes of data. 
+
+- Fault Tolerance and High Availability: Both Apache NiFi and Cassandra are designed to be fault-tolerant and ensure data availability. 
+
+- Real-time Data Streaming Compatibility: Apache NiFi is known for its real-time data processing capabilities. When combined with Cassandra, you can create real-time data processing systems that efficiently store and query data.
 
 - Start cassandra-node service
 
@@ -78,7 +110,7 @@ $ docker-compose -f docker/docker-compose.nifi.yml up -d
 $ docker-compose -f docker/docker-compose.cassandra.yml up -d
 ```
 
-- Now we have to create the keyspace and the table "cars" that is going to store the telemetry data
+- Now we have to create the 'epicnet' keyspace and the table 'cars' that is going to store the telemetry data
 
 - Accessing Cassandra container
 
@@ -92,13 +124,13 @@ $ docker exec -it cassandra-node bash
 cqlsh
 ```
 
-- Create "epicnet" keyspace
+- Create 'epicnet' keyspace
 
 ```bash
 create keyspace epicnet with replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
 ```
 
-- Create "cars" table
+- Create 'cars' table
 
 ```bash
 CREATE TABLE cars (   id UUID PRIMARY KEY,   year int,   make text,   model text,   category text,   slug text );
@@ -107,7 +139,7 @@ CREATE TABLE cars (   id UUID PRIMARY KEY,   year int,   make text,   model text
 - Now Cassandra database is ready to be used.
 
 
-## Node-RED Setup
+## Node-RED Setup 🔧
 
 - Start node-red service
 
@@ -134,11 +166,11 @@ localhost:1880
 
 - If you see this everything is correct!
 
-## Let's run the system
+## Let's run the system ▶️
 
 - With all the producers running, we just need to start our Nifi Flow for the system to work
 
-![Node-RED Flow](https://i.ibb.co/yFWCK1c/running.png)
+![Node-RED Flow](https://i.ibb.co/yVxZqWS/play.jpg)
 
 - If you got to
 
@@ -161,6 +193,5 @@ localhost:1880/ui
 ## Authors
 
 
-- Tomás Navarro
-- [@tomasnavb](https://www.github.com/tomasnavb)
+- Tomás Navarro - [@tomasnavb](https://www.github.com/tomasnavb)
 
