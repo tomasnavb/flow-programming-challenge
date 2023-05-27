@@ -1,50 +1,20 @@
-# Flow Programming Challenge
 
-[![Epic IO](https://img.shields.io/badge/AIoT-Epic%20IO-blue)](https://epicio.com/)
-[![Apache Kafka](https://img.shields.io/badge/streaming_platform-Apache%20Kafka-black.svg?style=flat-square)](https://kafka.apache.org)
-[![Apache NiFi](https://img.shields.io/badge/ETL-Apache%20NiFi-yellowgreen)](https://nifi.apache.org/)
+# Flow Programming Challenge - Tomás Navarro
+
+
+
 
 ## Description
 
-This challenge should be fully containerised and versioned, and it must be uploaded to a repository with its respective README.md with the deployment instructions. Must be plug and play to be evaluated.
+This is my personal project made to participate in the "Flow Programming Challenge" from Epic IO.
+In this document I'm going to explain how to deploy the project.
 
-You will need [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/) to solve it.
 
-The challenge has two parts, one oriented to processing data, and the other for visualizing of them.
-
-## Part One: Backend
-
-For processing data, create a NiFi Flow that consumes car detections from a Kafka topic called `epic.detections`, index them as a telemetry in database of your preference, generate alerts based on some attributes, and publish them into another Kafka topic called `epic.alerts`.
-
-Examples detection message:
-
-```json
-{'Year': 2011, 'Make': 'Toyota', 'Model': 'Land Cruiser', 'Category': 'SUV'}
-{'Year': 2020, 'Make': 'Mercedes-Benz', 'Model': 'C-Class', 'Category': 'Convertible, Sedan, Coupe'}
-```
-
-1. Each detection must be processed and added a new attribute called `Slug`, which consists of a slugfied string based on the following attributes: `Make`, `Model`, `Category`.
-
-```json
-{'Year': 2011, 'Make': 'Toyota', 'Model': 'Land Cruiser', 'Category': 'SUV', 'Slug': 'toyota-land-cruiser-suv'}
-{'Year': 2020, 'Make': 'Mercedes-Benz', 'Model': 'C-Class', 'Category': 'Convertible, Sedan, Coupe', 'Slug': 'mercedes-benz-c-class-convertible-sedan-coupe'}
-```
-
-2. Index the messages processed as telemetry in a database of your choice. Justify your choice.
-
-3. Generate alerts based on the following criteria:
-    
-    - All Toyota SUV vehicles older than 2010 must be published into the `epic.alerts` Kafka topic.
-
-## Part Two: Frontend
-
-For visualizing data, create a Dashboard in Node-RED with the following features
-    - Pop-up notifications based on the generated alerts from `epic.alerts` Kafka topic.
-    - A widget that displays a histogram based on the vehicle counters by year.
-
-___
+## Deployment
 
 ## Infra Setup
+
+You will need [Docker](https://docs.docker.com/install/) and [Docker Compose](https://docs.docker.com/compose/) installed in your computer.
 
 You simply need to create a Docker network called `epic-net` to enable communication between the services.
 
@@ -68,35 +38,129 @@ $ docker-compose -f docker/docker-compose.kafka.yml logs -f broker | grep "start
 $ docker-compose -f docker/docker-compose.producer.yml up -d
 ```
 
-## How to watch the broker messages
+## Nifi Setup
 
-Show a stream of detections in the topic `epic.detections` (optionally add `--from-beginning`):
-
-```bash
-$ docker-compose -f docker/docker-compose.kafka.yml exec broker kafka-console-consumer --bootstrap-server localhost:9092 --topic epic.detections
-```
-
-Topics:
-
-- `epic.detections`: raw generated detections
-- `epic.alerts`: generated alerts based on some criteria.
-
-## Teardown
-
-To stop the detections producer:
+- Start the Nifi and Nifi-Registry services
 
 ```bash
-$ docker-compose -f docker/docker-compose.producer.yml down
+$ docker-compose -f docker/docker-compose.nifi.yml up -d
 ```
 
-To stop the Kafka cluster (use `down`  instead to also remove contents of the topics):
+- After the Nifi docker-compose is up you will need to get the generated Username and Password to access Nifi.
+
+    - For Username
+
+    ```bash
+    $ docker logs docker_nifi_1 | grep "Generated Username"
+    ```
+
+    - For Password
+
+    ```bash
+    $ docker logs docker_nifi_1 | grep "Generated Password"
+    ```
+
+- After you login Apache Nifi you have to import the epic-network-template.xml that is located in the "templates" directory and place it on the workspace.
+
+![Nifi Flow](https://i.ibb.co/7jTdYVZ/workspace.png)
+
+- If you see EPIC-NETWORK group everything is correct.
+
+![Nifi Flow](https://i.ibb.co/hyjDCY3/nififlow.png)
+
+- All processors are located within EPIC-NETWORK
+
+## Cassandra Setup
+
+- Start cassandra-node service
 
 ```bash
-$ docker-compose -f docker-compose.kafka.yml stop
+$ docker-compose -f docker/docker-compose.cassandra.yml up -d
 ```
 
-To remove the Docker network:
+- Now we have to create the keyspace and the table "cars" that is going to store the telemetry data
+
+- Accessing Cassandra container
 
 ```bash
-$ docker network rm epic-net
+$ docker exec -it cassandra-node bash
 ```
+
+- Entering Cassandra terminal
+
+```bash
+cqlsh
+```
+
+- Create "epicnet" keyspace
+
+```bash
+create keyspace epicnet with replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
+```
+
+- Create "cars" table
+
+```bash
+CREATE TABLE cars (   id UUID PRIMARY KEY,   year int,   make text,   model text,   category text,   slug text );
+```
+
+- Now Cassandra database is ready to be used.
+
+
+## Node-RED Setup
+
+- Start node-red service
+
+```bash
+$ docker-compose -f docker/docker-compose.nodered.yml up -d
+```
+
+- Open Node-RED in the localhost
+
+```bash
+localhost:1880
+```
+
+- Necessary installations:
+
+    - Install node-red-contrib-kafka-manager 
+    - Install node-red-dashboard
+
+- These installations are intended to use the latest Node-RED node packages.
+
+- Then import the flow.json file that is located in the templates directory
+
+![Node-RED Flow](https://i.ibb.co/2N70n9C/nodered.png)
+
+- If you see this everything is correct!
+
+## Let's run the system
+
+- With all the producers running, we just need to start our Nifi Flow for the system to work
+
+![Node-RED Flow](https://i.ibb.co/yFWCK1c/running.png)
+
+- If you got to
+
+```bash
+localhost:1880/ui
+```
+
+- You will see the custom EPIC-NETWORK dashboard for the alerts and vehicles histogram
+
+![Nifi Flow](https://i.ibb.co/Cn2qnXj/node-red-dashboard.png)
+
+
+## Tech Stack
+
+- Docker, Apache Kafka, Apache Nifi, Node-RED, Cassandra, Python
+
+
+
+
+## Authors
+
+
+- Tomás Navarro
+- [@tomasnavb](https://www.github.com/tomasnavb)
+
