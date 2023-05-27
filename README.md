@@ -170,7 +170,7 @@ localhost:1880
 
 - With all the producers running, we just need to start our Nifi Flow for the system to work
 
-![Node-RED Flow](https://i.ibb.co/yVxZqWS/play.jpg)
+![Node-RED Flow](https://i.ibb.co/fD8mknj/run.jpg)
 
 - If you got to
 
