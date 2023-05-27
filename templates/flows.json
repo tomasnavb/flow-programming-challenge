@@ -1,0 +1,223 @@
+[
+    {
+        "id": "f6f2187d.f17ca8",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "a487333d3bb5e816",
+        "type": "Kafka Consumer",
+        "z": "f6f2187d.f17ca8",
+        "name": "EPIC.ALERTS",
+        "broker": "90dba9af508470d0",
+        "regex": false,
+        "topics": [
+            {
+                "topic": "epic.alerts",
+                "offset": 0,
+                "partition": 0
+            }
+        ],
+        "groupId": "kafka-node-group",
+        "autoCommit": "true",
+        "autoCommitIntervalMs": 5000,
+        "fetchMaxWaitMs": 100,
+        "fetchMinBytes": 1,
+        "fetchMaxBytes": 1048576,
+        "fromOffset": 0,
+        "encoding": "utf8",
+        "keyEncoding": "utf8",
+        "connectionType": "Consumer",
+        "convertToJson": false,
+        "x": 140,
+        "y": 120,
+        "wires": [
+            [
+                "587892ba981bd236",
+                "3ddfef50cb77d355"
+            ]
+        ]
+    },
+    {
+        "id": "9ee158e6508583ae",
+        "type": "ui_toast",
+        "z": "f6f2187d.f17ca8",
+        "position": "top right",
+        "displayTime": "3",
+        "highlight": "",
+        "sendall": true,
+        "outputs": 0,
+        "ok": "OK",
+        "cancel": "",
+        "raw": true,
+        "className": "",
+        "topic": "",
+        "name": "",
+        "x": 560,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "587892ba981bd236",
+        "type": "template",
+        "z": "f6f2187d.f17ca8",
+        "name": "ALERT",
+        "field": "payload",
+        "fieldType": "msg",
+        "format": "html",
+        "syntax": "mustache",
+        "template": "<h1>EPIC ALERT!</h1>\n<p style=\"color:#fff200;\">Old Toyota SUV detected</p>",
+        "output": "str",
+        "x": 360,
+        "y": 120,
+        "wires": [
+            [
+                "9ee158e6508583ae"
+            ]
+        ]
+    },
+    {
+        "id": "6d1bc2166f7321a7",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "RETURN COUNTERS BY YEAR",
+        "func": "// Obtén el objeto countersByYear del contexto global\nvar countersByYear = global.get('countersByYear');\n\n// Devuelve los contadores por año\nmsg.payload = countersByYear;\n\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 220,
+        "wires": [
+            [
+                "46ca0e37c065d017"
+            ]
+        ]
+    },
+    {
+        "id": "3ddfef50cb77d355",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "COUNTERS BY YEAR",
+        "func": "// Convierto Payload a JSON Object\nvar jsonString = msg.payload\nvar jsonObject = JSON.parse(jsonString)\n// Inicializa el objeto countersByYear si no existe en el contexto global\nif (!global.get('countersByYear')) {\n    global.set('countersByYear', {});\n}\nnode.warn(msg.payload)\n// Año del vehiculo\nvar year = jsonObject.Year;\n\n// countersByYear del contexto global\nvar countersByYear = global.get('countersByYear');\n\n// Incrementa el contador correspondiente al año\nif (countersByYear.hasOwnProperty(year)) {\n    countersByYear[year]++;\n} else {\n    countersByYear[year] = 1;\n}\n\n// Actualizar el objeto countersByYear en el contexto global\nglobal.set('countersByYear', countersByYear);\n\n// Return los contadores por año\nmsg.payload = countersByYear;\nreturn msg;\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "// Inicializa el objeto countersByYear si no existe en la variable de contexto\nif (!context.countersByYear) {\n    context.countersByYear = {};\n}\n",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 220,
+        "wires": [
+            [
+                "6d1bc2166f7321a7"
+            ]
+        ]
+    },
+    {
+        "id": "0fe41e4555681f07",
+        "type": "ui_chart",
+        "z": "f6f2187d.f17ca8",
+        "name": "",
+        "group": "19fe5fb9ec3a8c76",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "label": "HISTOGRAM VEHICLES COUNTER BY YEAR",
+        "chartType": "bar",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "",
+        "removeOlderUnit": "3600",
+        "cutout": 0,
+        "useOneColor": false,
+        "useUTC": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7800",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "outputs": 1,
+        "useDifferentColor": false,
+        "className": "",
+        "x": 1280,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "46ca0e37c065d017",
+        "type": "function",
+        "z": "f6f2187d.f17ca8",
+        "name": "BARCHART FORMAT",
+        "func": "var series = Object.keys(msg.payload);\nvar data = Object.values(msg.payload);\n\nvar chartData = [{\n    labels: series,\n    series: [\"COUNT\"],\n    data: [data],\n}];\n\nmsg.payload = chartData;\n\nreturn msg;\n\n\n\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 220,
+        "wires": [
+            [
+                "0fe41e4555681f07"
+            ]
+        ]
+    },
+    {
+        "id": "90dba9af508470d0",
+        "type": "Kafka Broker",
+        "name": "KAFKA-1",
+        "hosts": [
+            {
+                "host": "kafka-1",
+                "port": 29092
+            }
+        ],
+        "hostsEnvVar": "",
+        "connectTimeout": "10000",
+        "requestTimeout": "30000",
+        "autoConnect": "true",
+        "idleConnection": "5",
+        "reconnectOnIdle": "true",
+        "maxAsyncRequests": "10",
+        "checkInterval": "10",
+        "selfSign": true,
+        "usetls": false,
+        "useCredentials": false
+    },
+    {
+        "id": "19fe5fb9ec3a8c76",
+        "type": "ui_group",
+        "name": "INFO",
+        "tab": "c5b8dc842f3a24be",
+        "order": 1,
+        "disp": true,
+        "width": "28",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c5b8dc842f3a24be",
+        "type": "ui_tab",
+        "name": "EPIC-NET DASHBOARD",
+        "icon": "",
+        "disabled": false,
+        "hidden": false
+    }
+]
