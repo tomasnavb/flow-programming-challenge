@@ -1,0 +1,19 @@
+version: "3.7"
+
+services:
+  node-red:
+    image: nodered/node-red:latest
+    environment:
+      - TZ=America/Argentina/Cordoba
+    ports:
+      - "1880:1880"
+    volumes:
+      - node-red-data:/data
+    networks:
+      - epic-net
+
+volumes:
+  node-red-data:
+
+networks:
+  epic-net:

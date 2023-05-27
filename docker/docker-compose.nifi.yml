@@ -1,0 +1,47 @@
+version: "3.7"
+
+x-logging: 
+  &logging 
+  driver: "json-file"
+  options:
+    max-file: "5"
+    max-size: 10m
+
+services:
+  nifi:
+    image: apache/nifi:1.14.0
+    ports:
+      - 8443:8443
+    restart: unless-stopped
+    volumes:
+      - nifi_data_volume:/opt/nifi/nifi-current
+    networks:
+      - epic-net
+
+  nifi-registry:
+    container_name: nifi-registry
+    image: apache/nifi-registry:0.7.0
+    ports:
+      - 18080:18080
+    restart: unless-stopped
+    environment:
+      - NIFI_WEB_HTTP_HOST=0.0.0.0
+      - NIFI_WEB_HTTP_PORT=8080
+      - NIFI_WEB_HTTPS_HOST=0.0.0.0
+      - NIFI_WEB_HTTPS_PORT=8443
+      - NIFI_SECURITY_USER_USERNAME=admin
+      - NIFI_SECURITY_USER_PASSWORD=admin
+      - JVM_OPTS=-Xmx512m -Xms512m -XX:MaxPermSize=1g
+    volumes:
+      - nifi_registry_volume:/opt/nifi-registry/nifi-registry-current
+    networks:
+      - epic-net
+
+volumes:
+  nifi_data_volume:
+    name: nifi_data_volume
+  nifi_registry_volume:
+    name: nifi_registry_volume
+
+networks:
+  epic-net:

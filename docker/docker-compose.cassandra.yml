@@ -1,0 +1,16 @@
+version: '3.7'
+services:
+  cassandra:
+    image: cassandra:latest
+    container_name: cassandra-node
+    ports:
+      - "9042:9042"
+    restart: unless-stopped
+    environment:
+      - CASSANDRA_USER=admin
+      - CASSANDRA_PASSWORD=admin
+    networks:
+      - epic-net
+
+networks:
+ epic-net:

@@ -1,0 +1,25 @@
+version: "3.7"
+
+services:
+  producer_1:
+    build: ../producer
+    environment:
+      PRODUCER_ID: 1
+      KAFKA_BROKER_URL: kafka-1:29092
+      DETECTIONS_TOPIC: epic.detections
+      DETECTIONS_PER_SECOND: 1
+    networks:
+      - epic-net
+
+  producer_2:
+    build: ../producer
+    environment:
+      PRODUCER_ID: 2
+      KAFKA_BROKER_URL: kafka-1:29092
+      DETECTIONS_TOPIC: epic.detections
+      DETECTIONS_PER_SECOND: 2
+    networks:
+      - epic-net
+
+networks:
+  epic-net:

@@ -1,0 +1,62 @@
+version: "3.7"
+
+x-logging: 
+  &logging 
+  driver: "json-file"
+  options:
+    max-file: "5"
+    max-size: 10m
+
+services:
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper-1
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    logging: *logging
+    restart: unless-stopped
+    ports:
+      - 2181:2181
+    volumes:
+      - zookeeper_data_volume:/var/lib/zookeeper/data
+      - zookeeper_logs_volume:/var/lib/zookeeper/log
+    networks:
+      - epic-net
+
+  kafka-1:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka-1
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper-1:2181"
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka-1:29092,OUTSIDE://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    logging: *logging
+    restart: unless-stopped
+    ports:
+      - 9092:9092
+      - 29092:29092
+    volumes:
+      - kafka_data_volume:/var/lib/kafka/data
+      - kafka_logs_volume:/var/lib/kafka/log
+    depends_on:
+      - zookeeper-1
+    networks:
+      - epic-net
+
+volumes:
+  zookeeper_data_volume:
+    name: zookeeper_data_volume
+  zookeeper_logs_volume:
+    name: zookeeper_logs_volume
+  kafka_data_volume:
+    name: kafka_data_volume
+  kafka_logs_volume:
+    name: kafka_logs_volume
+
+networks:
+  epic-net:
