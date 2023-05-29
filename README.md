@@ -153,6 +153,8 @@ $ docker-compose -f docker/docker-compose.nodered.yml up -d
 localhost:1880
 ```
 
+- Node-RED saves configurations by default, but in case you need them, I will list the necessary installations for the system to work. 
+
 - Necessary installations:
 
     - Install node-red-contrib-kafka-manager 
@@ -160,11 +162,11 @@ localhost:1880
 
 - These installations are intended to use the latest Node-RED node packages.
 
-- Then import the flow.json file that is located in the templates directory
+- Then import the flow.json file that is located in the templates directory.
 
 ![Node-RED Flow](https://i.ibb.co/2N70n9C/nodered.png)
 
-- If you see this everything is correct!
+- If you see this, everything is correct!
 
 ## Let's run the system ▶️
 
@@ -178,7 +180,7 @@ localhost:1880
 localhost:1880/ui
 ```
 
-- You will see the custom EPIC-NETWORK dashboard for the alerts and vehicles histogram
+- You will see the custom EPIC-NETWORK dashboard for the alerts and vehicles histogram.
 
 ![Nifi Flow](https://i.ibb.co/Cn2qnXj/node-red-dashboard.png)
 
