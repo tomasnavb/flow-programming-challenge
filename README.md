@@ -78,7 +78,7 @@ $ docker-compose -f docker/docker-compose.nifi.yml up -d
 
 - All processors are located within EPIC-NETWORK
 
-- Now set the database password in PUT CASSANDRA processor. This is required because Apache Nifi doesn't save passwords in templates configuration.
+- Now set the database password in the PUT CASSANDRA processor. This is required because Apache Nifi doesn't save passwords in templates configuration.
 
 ```bash
 User: admin
