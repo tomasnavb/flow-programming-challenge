@@ -37,7 +37,7 @@ $ docker-compose -f docker/docker-compose.kafka.yml up -d
 - Check the cluster is up and running (wait for "started" to show up):
 
 ```bash
-$ docker-compose -f docker/docker-compose.kafka.yml logs -f broker | grep "started"
+$ docker-compose -f docker/docker-compose.kafka.yml logs -f kafka-1 | grep "started"
 ```
 
 - Start the detections producer (will run in the background):
@@ -74,16 +74,18 @@ $ docker-compose -f docker/docker-compose.nifi.yml up -d
 
 - If you see EPIC-NETWORK group everything is correct.
 
-![Nifi Flow](https://i.ibb.co/hyjDCY3/nififlow.png)
+![Nifi Flow](https://i.ibb.co/jgVfWQL/main.png)
 
 - All processors are located within EPIC-NETWORK
 
-- Now set the database password in the PUT CASSANDRA processor. This is required because Apache Nifi doesn't save passwords in templates configuration.
+- Now set the database password in PUT CASSANDRA and SELECT YEARS processors. This is required because Apache Nifi doesn't save passwords in templates configuration.
 
 ```bash
 User: admin
 Password: admin
 ```
+
+- By default, the SELECT YEARS processor will be disabled to bypass the flow when pressing start and avoid generating unnecessary queries. Then, it will need to be enabled to generate the necessary query to display the histogram on the front-end.
 
 - Last step is enable CassandraSessionProvider in the EPIC-NETWORK configuration.
 
@@ -162,9 +164,9 @@ localhost:1880
 
 - These installations are intended to use the latest Node-RED node packages.
 
-- Then import the flow.json file that is located in the templates directory.
+- Then, if you require, import the flow.json file, which is located in the templates directory.
 
-![Node-RED Flow](https://i.ibb.co/2N70n9C/nodered.png)
+![Node-RED Flow](https://i.ibb.co/mDwDmm3/nodered-main.png)
 
 - If you see this, everything is correct!
 
@@ -172,7 +174,11 @@ localhost:1880
 
 - With all the producers running, we just need to start our Nifi Flow for the system to work
 
-![Node-RED Flow](https://i.ibb.co/fD8mknj/run.jpg)
+![Node-RED Flow](https://i.ibb.co/p36VrvK/start.jpg)
+
+- Remember to enable the SELECT YEARS processor. Then press "run once" to generate the necessary data whenever you need to update the histogram data.
+
+![Node-RED enable](https://i.ibb.co/mTCQfd7/enabled.jpg)
 
 - If you got to
 
@@ -187,7 +193,7 @@ localhost:1880/ui
 
 ## Tech Stack
 
-- Docker, Apache Kafka, Apache Nifi, Node-RED, Cassandra, Python
+- Docker, Apache Kafka, Apache Nifi, Node-RED, Apache Cassandra, Python
 
 
 
