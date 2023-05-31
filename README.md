@@ -190,6 +190,20 @@ localhost:1880/ui
 
 ![Nifi Flow](https://i.ibb.co/Cn2qnXj/node-red-dashboard.png)
 
+- And if you list the 'cars' table in the database, you will see all the information stored
+
+```bash
+cqlsh
+```
+```bash
+USE epicnet;
+```
+```bash
+SELECT * FROM cars;
+```
+
+![Database](https://i.ibb.co/f4x0NfT/database.png)
+
 
 ## Tech Stack
 
